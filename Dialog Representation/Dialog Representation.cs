@@ -139,6 +139,10 @@ interface IDialog {
 
     List<Answer> GetChatHistory();
 }
+
+class CustomDefinedException : Exception { 
+    public CustomDefinedException(string error) : base(error) { }
+}
 class DialogGraph : IDialog {
     private Dictionary<string, Question> questions;
     private List<Answer> chatHistory;
@@ -165,13 +169,15 @@ class DialogGraph : IDialog {
         chatHistory = new List<Answer>();
         questions["START"] = new BoundaryVertex("START", new List<Edge>() { new Edge(inputQuestions[0].name) });
         questions["END"] = new BoundaryVertex("END");
-        /// !!!!! did not solve approach how to mark edges from last question to end 
-        /// 
-
+        /*  Guidline for working with start and end: 
+         *      - Start is always assigned to the first question. 
+         *      - End must be defined in question list input into constructor of dialog graph. 
+         *      - There may be multiple ends. Only single start vertex logic is supported now. 
+         */
         currentQuestion = questions[inputQuestions[0].name]; // think this through for future
 
         if (GraphIsInvalid(out string error))
-            throw new Exception(error);
+            throw new CustomDefinedException(error);
     }
 
     private bool GraphIsInvalid(out string allErrors) {
@@ -188,27 +194,34 @@ class DialogGraph : IDialog {
          *      10. Not all paths lead to END => some nonEND question has zero out edges
          *      11. Created graph contains cycles
          */
-        bool problem = false;
         List<string> messages = new();
 
         if (NotUniqueNames_ReservedNamesViolation(out string error)) {
-            problem = true; messages.Add(error);
+            messages.Add(error);
+            allErrors = AddUpmessages(messages);
+            return true;
         }
 
         if (EdgesAreInvalid(out error)) {
-            problem = true; messages.Add(error);
+            messages.Add(error);
+            allErrors = AddUpmessages(messages);
+            return true;
         }
 
         if (GraphContainsCycles(out error)) {
-            problem = true; messages.Add(error);
+            messages.Add(error);
+            allErrors = AddUpmessages(messages);
+            return true;
         }
+        allErrors = "No error found.";
+        return false;
+    }
 
-        allErrors = "";
-        if (problem)
-            foreach (string s in messages)
-                allErrors += $" ⚠❎>>> {s} <<<❎⚠ \n ";
-
-        return problem;
+    private static string AddUpmessages(List<string> messages) {
+        string allErrors = "";
+        foreach (string s in messages)
+            allErrors += $" ⚠❎>>> {s} <<<❎⚠ \n ";
+        return allErrors;
     }
 
     private bool NotUniqueNames_ReservedNamesViolation(out string error) {
@@ -254,8 +267,10 @@ class DialogGraph : IDialog {
             string self = q.name;
             foreach (Edge e in q.options) {
                 string to = e.To;
+                //WriteLine("Debug info: " + to);
+                //WriteLine(questions.ContainsKey(to));
                 if (!questions.ContainsKey(to)) {
-                    error = $"There is an edge that is pointing to question: ${to}. But guess what. That question does not exist. 😂😂";
+                    error = $"There is an edge that is pointing to question: {to}. But guess what. That question does not exist. 😂😂";
                     return true;
                 }
                 if (to == "START") {
@@ -374,11 +389,11 @@ class DialogGraph : IDialog {
     }
 
     public void Reverse() {
-        // remove last answer from chatHistory 
-        // update current question to be the last question of current chathistory 
-        chatHistory.RemoveAt(chatHistory.Count - 1);
+        // remove last answer from chatHistory
+        // update current question to be the last question of current chathistory
         string lastQuestion = chatHistory[^1].name;
         currentQuestion = questions[lastQuestion];
+        chatHistory.RemoveAt(chatHistory.Count - 1);
     }
 
     public List<Answer> GetChatHistory() => chatHistory;

@@ -7,7 +7,7 @@ class Program {
         List<Question> questions = new() {
             new OptionsQ("web shop", "Chces stranku nebo eshop?", new List<Edge>() { new Edge("Eshop", "Kolik produktu"), new Edge("Web", "Velky") }),
             new IntQ("Kolik produktu", "Kolik prodktu v eshopu chces?", new List<Edge>() { new Edge("Velky") }, 1, 1_000_000),
-            new OptionsQ("Velky", "Chces to velky?", new List<Edge> { new Edge("Ano", "SEO"), new Edge("Ne", "SEO") }),
+            new OptionsQ("Velky", "Chces to velky?", new List<Edge> { new Edge("Ano", "SEO"), new Edge("Ne", "Fotky") }),
             new OptionsQ("SEO", "Chces SEO?", new List<Edge> { new Edge("Ano", "KolikSEA"), new Edge("Ne", "Fotky") }),
             new IntQ("KolikSEA", "Kolike SEA chces?", new List<Edge> { new Edge("Fotky") }, 1, 1_000_000),
             new OptionsQ("Fotky", "Chces fotky?", new List<Edge> { new Edge("Ano", "KolikFotek"), new Edge("Ne", "DejMiEmail") }),
@@ -34,25 +34,31 @@ class Program {
             WriteLine("Options: ");
             foreach (Edge e in q.options)
                 Write(e.Name + " ");
-
+            WriteLine(" Additionally to erase your previous answer type: 'R'");
             WriteLine();
             string odpovedUsera = ReadLine();
 
-            if (dg.SetAnswer(odpovedUsera)) {
-                WriteLine("Correct answer. \n");
+            if(odpovedUsera == "R") {
+                WriteLine("Removing last answer!\n");
+                dg.Reverse();
+
             } else {
-                WriteLine("Sorry bad answer.");
-            }
+                if (dg.SetAnswer(odpovedUsera)) {
+                    WriteLine("Correct answer. \n");
+                } else {
+                    WriteLine("Sorry bad answer.");
+                }
 
-            if (dg.GetQuestion().name == "END") {
-                WriteLine("______________________________");
-                WriteLine("Your final chatHistory is: ");
+                if (dg.GetQuestion().name == "END") {
+                    WriteLine("______________________________");
+                    WriteLine("Your final chatHistory is: ");
 
-                foreach (Answer a in dg.GetChatHistory())
-                    WriteLine(a);
+                    foreach (Answer a in dg.GetChatHistory())
+                        WriteLine(a);
 
-                WriteLine("Thank you for talking to me. Have a nice day.");
-                break;
+                    WriteLine("Thank you for talking to me. Have a nice day.");
+                    break;
+                }
             }
         }
     }
