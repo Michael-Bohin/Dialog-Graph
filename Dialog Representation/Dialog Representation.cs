@@ -30,6 +30,11 @@ abstract class Question {               // Vertex with dialog data
     public override string ToString() => question;
 }
 
+/* future types of questions: 
+ * TelephoneQ : Question
+ * TextQ : Question
+ */
+
 class OptionsQ : Question {
     public OptionsQ(string n, string q, List<Edge> o) : base(n, q, o) { }
 
@@ -76,12 +81,6 @@ class EmailQ : Question {
 
     public override string GetType() => "Email question";
 }
-
-// future types of questions: 
-/* TelephoneQ : Question
- * TextQ : Question
- *
- */
 
 class BoundaryVertex : Question {
     public BoundaryVertex(string n) {
